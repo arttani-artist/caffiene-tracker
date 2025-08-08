@@ -1,0 +1,357 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>goth skater caffeine tracker v4</title>
+<style>
+  body {
+    font-family: Arial, sans-serif;
+    background: #0e0e0e;
+    color: #eee;
+    text-align: center;
+    padding: 20px;
+  }
+  h1 {
+    font-size: 2em;
+    color: #ff1744;
+    margin-bottom: 5px;
+  }
+  .motivation {
+    font-style: italic;
+    font-size: 1.1em;
+    color: #aaa;
+    margin-bottom: 15px;
+  }
+  .streak {
+    font-size: 1.5em;
+    margin: 15px 0;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    gap: 10px;
+  }
+  .flame {
+    font-size: 1.8em;
+    transition: color 0.5s ease;
+    filter: drop-shadow(0 0 6px #ff1744);
+  }
+  .flame.off {
+    color: #555;
+    filter: none;
+    opacity: 0.6;
+  }
+  button {
+    background: #1f1f1f;
+    border: 2px solid #ff1744;
+    padding: 10px 15px;
+    margin: 5px;
+    font-size: 1em;
+    cursor: pointer;
+    border-radius: 5px;
+    color: #eee;
+    transition: background 0.3s;
+  }
+  button:hover {
+    background: #ff1744;
+    color: #0e0e0e;
+  }
+  .xp {
+    margin-top: 10px;
+    font-size: 1.2em;
+    color: #8aff80;
+  }
+  .achievements {
+    margin-top: 20px;
+    background: rgba(255,255,255,0.05);
+    padding: 10px;
+    border-radius: 8px;
+    display: grid;
+    grid-template-columns: repeat(auto-fit,minmax(80px,1fr));
+    gap: 15px;
+    max-width: 400px;
+    margin-left: auto;
+    margin-right: auto;
+  }
+  .achievement {
+    font-size: 2em;
+    border: 2px solid #444;
+    border-radius: 10px;
+    padding: 10px 0;
+    user-select: none;
+    color: #555;
+    transition: all 0.3s ease;
+  }
+  .achievement.unlocked {
+    color: #ff1744;
+    border-color: #ff1744;
+    filter: drop-shadow(0 0 6px #ff1744);
+  }
+  .skateboard-container {
+    width: 300px;
+    height: 60px;
+    margin: 20px auto;
+    background: #222;
+    border-radius: 30px;
+    position: relative;
+    overflow: hidden;
+    border: 3px solid #444;
+  }
+  .skateboard-fill {
+    height: 100%;
+    background: linear-gradient(90deg, #ff1744, #ff9100);
+    width: 0%;
+    transition: width 0.4s ease-in-out;
+  }
+  /* modal styles */
+  .modal {
+    display: none;
+    position: fixed;
+    z-index: 10;
+    left: 0; top: 0;
+    width: 100%; height: 100%;
+    background: rgba(0,0,0,0.8);
+  }
+  .modal-content {
+    background: #1a1a1a;
+    color: #eee;
+    margin: 10% auto;
+    padding: 20px;
+    border: 2px solid #ff1744;
+    width: 80%;
+    max-width: 500px;
+    border-radius: 10px;
+    text-align: left;
+  }
+  .close {
+    color: #ff1744;
+    float: right;
+    font-size: 1.5em;
+    cursor: pointer;
+  }
+  .challenge {
+    margin-top: 20px;
+    font-size: 1.1em;
+    color: #ff9100;
+  }
+</style>
+</head>
+<body>
+
+<h1>🛹 caffeine-free tracker</h1>
+<div class="motivation" id="motivation"></div>
+
+<div class="skateboard-container">
+  <div class="skateboard-fill" id="skateFill"></div>
+</div>
+
+<div class="streak">
+  streak: <span id="streak">0</span> days
+  <span id="flame" class="flame off">🔥</span>
+</div>
+<div class="xp">xp: <span id="xp">0</span></div>
+
+<button onclick="logDay(true)">✅ no caffeine today</button>
+<button onclick="logDay(false)">❌ i caved...</button>
+<button onclick="logDrink()">🥤 log drink</button>
+<button onclick="showHistory()">📜 view history</button>
+<button onclick="dailyChallenge()">🎯 daily challenge</button>
+<button id="completeChallengeBtn" style="display:none;" onclick="completeChallenge()">✔ complete challenge</button>
+<button onclick="resetData()">🗑 reset all data</button>
+
+<div class="challenge" id="challengeText"></div>
+
+<div class="achievements" id="achievementShelf">
+  <!-- achievement kaomojis here -->
+</div>
+
+<!-- history modal -->
+<div id="historyModal" class="modal">
+  <div class="modal-content">
+    <span class="close" onclick="closeModal()">&times;</span>
+    <h2>history</h2>
+    <ul id="historyList"></ul>
+  </div>
+</div>
+
+<script>
+let streak = parseInt(localStorage.getItem('streak')) || 0;
+let xp = parseInt(localStorage.getItem('xp')) || 0;
+let achievements = JSON.parse(localStorage.getItem('achievements')) || [];
+let history = JSON.parse(localStorage.getItem('history')) || [];
+let currentChallenge = JSON.parse(localStorage.getItem('currentChallenge')) || null;
+
+const streakEl = document.getElementById('streak');
+const xpEl = document.getElementById('xp');
+const achievementsList = document.getElementById('achievementsList');
+const skateFill = document.getElementById('skateFill');
+const historyList = document.getElementById('historyList');
+const motivationEl = document.getElementById('motivation');
+const flameEl = document.getElementById('flame');
+const achievementShelf = document.getElementById('achievementShelf');
+const challengeText = document.getElementById('challengeText');
+const completeChallengeBtn = document.getElementById('completeChallengeBtn');
+
+const motivations = [
+  "no caffeine, no chains. keep shredding.",
+  "cleaner than fresh grip tape.",
+  "coffee can’t kickflip, but you can.",
+  "soda’s for posers. stay true.",
+  "black coffee isn’t goth, but you are."
+];
+
+const milestones = {
+  7: {name: 'ollie', icon: '(ง •̀_•́)ง'},
+  14: {name: 'kickflip', icon: '(ง\'̀-\'́)ง'},
+  30: {name: '360 flip', icon: '(☞ﾟヮﾟ)☞'},
+  90: {name: 'the goat', icon: '(⌐■_■)'}
+};
+
+const challenges = [
+  "drink 2L of water today",
+  "no soda for 24hrs",
+  "replace coffee with tea",
+  "try a new caffeine-free drink",
+  "go to bed before 11pm"
+];
+
+function setDailyMotivation() {
+  let dayIndex = new Date().getDate() % motivations.length;
+  motivationEl.textContent = motivations[dayIndex];
+}
+
+function updateDisplay() {
+  streakEl.textContent = streak;
+  xpEl.textContent = xp;
+  let fillPercent = Math.min(streak / 30 * 100, 100);
+  skateFill.style.width = fillPercent + '%';
+
+  if (streak > 0) {
+    flameEl.classList.remove('off');
+  } else {
+    flameEl.classList.add('off');
+  }
+
+  renderAchievements();
+  updateChallengeUI();
+}
+
+function renderAchievements() {
+  achievementShelf.innerHTML = '';
+  for (const [day, ach] of Object.entries(milestones)) {
+    let unlocked = streak >= day && achievements.includes(ach.name);
+    achievementShelf.innerHTML += `<div class="achievement ${unlocked ? 'unlocked' : ''}" title="${ach.name}">${ach.icon}</div>`;
+  }
+}
+
+function checkAchievements() {
+  for (const [day, ach] of Object.entries(milestones)) {
+    if (streak >= day && !achievements.includes(ach.name)) {
+      achievements.push(ach.name);
+      alert(`achievement unlocked: ${ach.name}! ${ach.icon}`);
+    }
+  }
+}
+
+function logDay(success) {
+  let today = new Date().toLocaleDateString();
+  if (success) {
+    streak++;
+    xp += 10;
+    history.push({date: today, result: "no caffeine", drink: null});
+    checkAchievements();
+  } else {
+    streak = 0;
+    xp = Math.max(0, xp - 5);
+    history.push({date: today, result: "caved", drink: null});
+    currentChallenge = null; // reset challenge if fail day
+    localStorage.removeItem('currentChallenge');
+  }
+  saveData();
+  updateDisplay();
+}
+
+function logDrink() {
+  let drink = prompt("what did you drink instead?");
+  if (drink) {
+    let today = new Date().toLocaleDateString();
+    history.push({date: today, result: "no caffeine", drink: drink});
+    streak++;
+    xp += 12;
+    checkAchievements();
+    saveData();
+    updateDisplay();
+  }
+}
+
+function showHistory() {
+  historyList.innerHTML = history.map(h =>
+    `<li>${h.date}: ${h.result}${h.drink ? " (had: " + h.drink + ")" : ""}</li>`
+  ).join('');
+  document.getElementById('historyModal').style.display = 'block';
+}
+
+function closeModal() {
+  document.getElementById('historyModal').style.display = 'none';
+}
+
+function dailyChallenge() {
+  if (currentChallenge) {
+    alert("you already have an active challenge! complete it or reset data.");
+    return;
+  }
+  let random = challenges[Math.floor(Math.random() * challenges.length)];
+  currentChallenge = {text: random, date: new Date().toLocaleDateString(), completed: false};
+  localStorage.setItem('currentChallenge', JSON.stringify(currentChallenge));
+  alert(`daily challenge: ${random} (+15 xp if done)`);
+  updateChallengeUI();
+}
+
+function updateChallengeUI() {
+  if (!currentChallenge) {
+    challengeText.textContent = '';
+    completeChallengeBtn.style.display = 'none';
+    return;
+  }
+  challengeText.textContent = `🎯 challenge: ${currentChallenge.text} ${currentChallenge.completed ? '(completed)' : ''}`;
+  completeChallengeBtn.style.display = currentChallenge.completed ? 'none' : 'inline-block';
+}
+
+function completeChallenge() {
+  if (!currentChallenge || currentChallenge.completed) return;
+  currentChallenge.completed = true;
+  streak++;
+  xp += 15;
+  alert('challenge complete! +15 xp');
+  localStorage.setItem('currentChallenge', JSON.stringify(currentChallenge));
+  checkAchievements();
+  saveData();
+  updateDisplay();
+}
+
+function resetData() {
+  if (confirm("reset all data?")) {
+    streak = 0;
+    xp = 0;
+    achievements = [];
+    history = [];
+    currentChallenge = null;
+    localStorage.removeItem('currentChallenge');
+    saveData();
+    updateDisplay();
+  }
+}
+
+function saveData() {
+  localStorage.setItem('streak', streak);
+  localStorage.setItem('xp', xp);
+  localStorage.setItem('achievements', JSON.stringify(achievements));
+  localStorage.setItem('history', JSON.stringify(history));
+}
+
+setDailyMotivation();
+updateDisplay();
+</script>
+
+</body>
+</html>
