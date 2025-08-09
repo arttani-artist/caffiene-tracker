@@ -88,7 +88,7 @@
     filter: drop-shadow(0 0 6px #ff1744);
   }
   .skateboard-container {
-    width: 300px;
+    width: 600px;  /* changed from 300px to 600px for longer bar */
     height: 60px;
     margin: 20px auto;
     background: #222;
@@ -134,6 +134,20 @@
     font-size: 1.1em;
     color: #ff9100;
   }
+
+  /* new sleep log styles */
+  .sleep-log {
+    margin: 20px auto;
+    max-width: 300px;
+    background: #222;
+    border-radius: 10px;
+    padding: 15px;
+    border: 2px solid #ff1744;
+    color: #eee;
+  }
+  .sleep-log button {
+    margin-top: 10px;
+  }
 </style>
 </head>
 <body>
@@ -150,6 +164,12 @@
   <span id="flame" class="flame off">🔥</span>
 </div>
 <div class="xp">xp: <span id="xp">0</span></div>
+
+<!-- sleep log added -->
+<div class="sleep-log">
+  <div>sleep logged today: <span id="sleepHours">0</span> hrs</div>
+  <button onclick="logSleep()">log sleep hours</button>
+</div>
 
 <button onclick="logDay(true)">√ no caffeine today</button>
 <button onclick="logDay(false)">✘ i caved...</button>
@@ -180,6 +200,7 @@ let xp = parseInt(localStorage.getItem('xp')) || 0;
 let achievements = JSON.parse(localStorage.getItem('achievements')) || [];
 let history = JSON.parse(localStorage.getItem('history')) || [];
 let currentChallenge = JSON.parse(localStorage.getItem('currentChallenge')) || null;
+let sleepData = JSON.parse(localStorage.getItem('sleepData')) || {};
 
 const streakEl = document.getElementById('streak');
 const xpEl = document.getElementById('xp');
@@ -191,6 +212,7 @@ const flameEl = document.getElementById('flame');
 const achievementShelf = document.getElementById('achievementShelf');
 const challengeText = document.getElementById('challengeText');
 const completeChallengeBtn = document.getElementById('completeChallengeBtn');
+const sleepHoursEl = document.getElementById('sleepHours');
 
 const motivations = [
   "no caffeine, no chains. keep bein a dippy dawg.",
@@ -212,16 +234,16 @@ const challenges = [
   "no soda for 24hrs",
   "replace coffee with tea",
   "try a new caffeine-free drink",
-  "go to bed before 11pm"
-  "take a 10-minute walk instead of reaching for caffeine"
-  "do 20 jumping jacks when you feel an energy dip"
-  "try a 5-minute meditation instead of your usual energy drink"
-  "eat an apple or banana when craving caffeine"
-  "step outside for fresh air instead of grabbing coffee"
-  "take a 15-minute power nap instead of caffeine"
-  "do gentle stretches when feeling sluggish"
-  "practice deep breathing for 3 minutes when craving energy"
-  "go caffeine-free for your entire weekend"
+  "go to bed before 11pm",
+  "take a 10-minute walk instead of reaching for caffeine",
+  "do 20 jumping jacks when you feel an energy dip",
+  "try a 5-minute meditation instead of your usual energy drink",
+  "eat an apple or banana when craving caffeine",
+  "step outside for fresh air instead of grabbing coffee",
+  "take a 15-minute power nap instead of caffeine",
+  "do gentle stretches when feeling sluggish",
+  "practice deep breathing for 3 minutes when craving energy",
+  "go caffeine-free for your entire weekend",
   "track your sleep quality on low-caffeine days"
 ];
 
@@ -244,6 +266,7 @@ function updateDisplay() {
 
   renderAchievements();
   updateChallengeUI();
+  updateSleepDisplay();
 }
 
 function renderAchievements() {
@@ -292,6 +315,29 @@ function logDrink() {
     saveData();
     updateDisplay();
   }
+}
+
+// new sleep logging function
+function logSleep() {
+  let today = new Date().toLocaleDateString();
+  let hours = prompt("how many hours did you sleep last night? (enter a number)");
+  if (hours !== null) {
+    hours = parseFloat(hours);
+    if (!isNaN(hours) && hours >= 0 && hours <= 24) {
+      sleepData[today] = hours;
+      localStorage.setItem('sleepData', JSON.stringify(sleepData));
+      alert(`logged ${hours} hours of sleep for ${today}`);
+      updateSleepDisplay();
+    } else {
+      alert("please enter a valid number between 0 and 24");
+    }
+  }
+}
+
+function updateSleepDisplay() {
+  let today = new Date().toLocaleDateString();
+  let hours = sleepData[today] || 0;
+  sleepHoursEl.textContent = hours;
 }
 
 function showHistory() {
@@ -346,7 +392,9 @@ function resetData() {
     achievements = [];
     history = [];
     currentChallenge = null;
+    sleepData = {};
     localStorage.removeItem('currentChallenge');
+    localStorage.removeItem('sleepData');
     saveData();
     updateDisplay();
   }
@@ -361,6 +409,7 @@ function saveData() {
 
 setDailyMotivation();
 updateDisplay();
+
 </script>
 
 </body>
