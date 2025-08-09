@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1" />
-<title>caffeine tracker yoppee</title>
+<title>caffeine tracker yippee</title>
 <style>
   body {
     font-family: Arial, sans-serif;
@@ -151,13 +151,13 @@
 </div>
 <div class="xp">xp: <span id="xp">0</span></div>
 
-<button onclick="logDay(true)">✓ no caffeine today</button>
+<button onclick="logDay(true)">√ no caffeine today</button>
 <button onclick="logDay(false)">✘ i caved...</button>
 <button onclick="logDrink()">☕︎ log drink</button>
 <button onclick="showHistory()">✎ view history</button>
-<button onclick="dailyChallenge()">🎯 daily challenge</button>
+<button onclick="dailyChallenge()">𖣠 daily challenge</button>
 <button id="completeChallengeBtn" style="display:none;" onclick="completeChallenge()">✔ complete challenge</button>
-<button onclick="resetData()">🗑 reset all data</button>
+<button onclick="resetData()">♲ reset all data</button>
 
 <div class="challenge" id="challengeText"></div>
 
@@ -193,18 +193,18 @@ const challengeText = document.getElementById('challengeText');
 const completeChallengeBtn = document.getElementById('completeChallengeBtn');
 
 const motivations = [
-  "no caffeine, no chains. keep shredding.",
+  "no caffeine, no chains. keep bein a dippy dawg.",
   "cleaner than fresh grip tape.",
   "coffee can’t kickflip, but you can.",
-  "soda’s for posers. stay true.",
-  "black coffee isn’t goth, but you are."
+  "coffee’s for posers. stay cool.",
+  "black coffee isn't coolio, but you are."
 ];
 
 const milestones = {
   7: {name: 'ollie', icon: '(ง •̀_•́)ง'},
   14: {name: 'kickflip', icon: '(ง\'̀-\'́)ง'},
   30: {name: '360 flip', icon: '(☞ﾟヮﾟ)☞'},
-  90: {name: 'the goat', icon: '(⌐■_■)'}
+  90: {name: 'dippy dawg', icon: '(⌐■_■)'}
 };
 
 const challenges = [
@@ -213,6 +213,16 @@ const challenges = [
   "replace coffee with tea",
   "try a new caffeine-free drink",
   "go to bed before 11pm"
+  "take a 10-minute walk instead of reaching for caffeine"
+  "do 20 jumping jacks when you feel an energy dip"
+  "try a 5-minute meditation instead of your usual energy drink"
+  "eat an apple or banana when craving caffeine"
+  "step outside for fresh air instead of grabbing coffee"
+  "take a 15-minute power nap instead of caffeine"
+  "do gentle stretches when feeling sluggish"
+  "practice deep breathing for 3 minutes when craving energy"
+  "go caffeine-free for your entire weekend"
+  "track your sleep quality on low-caffeine days"
 ];
 
 function setDailyMotivation() {
